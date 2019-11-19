@@ -1,0 +1,104 @@
+version: 2.1
+
+pip: &pip
+  name: Install Pip
+  command: |
+    sudo apt install python-pip python-virtualenv
+venv: &venv
+  name: Setup Virtualenv
+  command: |
+    virtualenv .python
+getenv: &getenv
+  name: Get Environment Info
+  command: |
+    . .python/bin/activate
+    which python
+    python -V
+    which pip
+    pip -V
+depinst: &depinst
+  name: Install Dependencies
+  command: |
+    . .python/bin/activate
+    pip install -r requirements.txt
+test: &test
+  name: Run Unit Tests
+  command: |
+    . .python/bin/activate
+    python ./test_pdpyras.py
+
+jobs:
+
+  py2_7:
+    docker:
+      - image: circleci/python:2.7-stretch
+    steps:
+      - checkout
+      - run:
+          <<: *pip
+      - run:
+          <<: *venv
+      - run:
+          <<: *getenv
+      - run:
+          <<: *depinst
+      - run:
+          <<: *test
+
+  py3_5:
+    docker:
+      - image: circleci/python:3.5-stretch
+    steps:
+      - checkout
+      - run:
+          <<: *pip
+      - run:
+          <<: *venv
+      - run:
+          <<: *getenv
+      - run:
+          <<: *depinst
+      - run:
+          <<: *test
+
+  py3_6:
+    docker:
+      - image: circleci/python:3.6-stretch
+    steps:
+      - checkout
+      - run:
+          <<: *pip
+      - run:
+          <<: *venv
+      - run:
+          <<: *getenv
+      - run:
+          <<: *depinst
+      - run:
+          <<: *test
+
+  py3_7:
+    docker:
+      - image: circleci/python:3.7-stretch
+    steps:
+      - checkout
+      - run:
+          <<: *pip
+      - run:
+          <<: *venv
+      - run:
+          <<: *getenv
+      - run:
+          <<: *depinst
+      - run:
+          <<: *test
+
+workflows: 
+  version: 2.1
+  run_tests:
+    jobs:
+      - py2_7
+      - py3_5
+      - py3_6
+      - py3_7
+

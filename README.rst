@@ -3,7 +3,7 @@ PDPYRAS: PagerDuty Python REST API Sessions
 ===========================================
 A minimal, practical Python client for the PagerDuty REST API.
 
-|travis-build|
+|circleci-build|
 
 * `GitHub repository <https://github.com/PagerDuty/pdpyras>`_ 
 * `Documentation <https://pagerduty.github.io/pdpyras>`_
@@ -264,11 +264,25 @@ representing the desired result, all of the following are taken care of:
 3. Validate that the result contains the predicted envelope property.
 4. Access the property that is encapsulated within the response.
 
-**Please note,** not all API endpoints are supported. The general rule is that
-the envelope name must follow from the innermost resource name for the API path
-in question, i.e. for ``/escalation_policies/{id}`` the envelope name must be
+Supported Endpoints
++++++++++++++++++++
+
+**Please note,** not all API endpoints are supported for these convenience
+functions. The general rules are that the name of the wrapped resource
+property must follow from the innermost resource name for the API path in
+question, and that the "nodes" in the URL path (between forward slashes) must
+alternate between resource type and ID.
+
+For instance, for ``/escalation_policies/{id}`` the name must be
 ``escalation_policy``, and or for ``/users/{id}/notification_rules`` it must be
-``notification_rule``.
+``notification_rules``.
+
+For example, with user sessions (one API resource/endpoint that breaks these
+rules), one will need to use the plain ``get`` and ``post`` functions, or
+``jget`` / ``jpost``, because their URLs are formatted as
+``/users/{id}/sessions/{type}/{session_id}`` and the wrapped resource property
+name is ``user_sessions`` / ``user_session`` rather than simply ``sessions`` /
+``session``.
 
 Iteration
 +++++++++
@@ -312,7 +326,7 @@ Because HTTP requests are made synchronously and not in parallel threads, the
 data will be retrieved one page at a time and the functions ``list_all`` and
 ``dict_all`` will not return until after the HTTP response from the final API
 call is received. Simply put, the functions will take longer to return if the
-total number of resuls is higher.
+total number of results is higher.
 
 **On Updating and Deleting Records:**
 
@@ -544,17 +558,19 @@ before finally returning with the status 404 `requests.Response`_ object:
     # isinstance(session, pdpyras.APISession)
     response = session.get('/users/PNOEXST') 
 
-**Default Rate Limit Behavior:**
+**Default Behavior:**
 
 Note that without specifying any retry behavior for status 429 (rate limiting),
 it will retry indefinitely. This is a sane approach; if it is ever responding
 with 429, this means that the REST API is receiving (for the given REST API
-key) too many requests, and the issue should by nature be transient. Similarly,
-the hard-coded default behavior for status 401 (unauthorized) is to immediately 
-raise :class:`pdpyras.PDClientError`
+key) too many requests, and the issue should by nature be transient. 
 
-It is, however, possible to override this behavior using
-:attr:`pdpyras.PDSession.retry`.
+Similarly, there is hard-coded default behavior for status 401 (unauthorized):
+immediately raise :class:`pdpyras.PDClientError` (as this can be considered in
+all cases a completely non-transient error).
+
+It is still possible to override these behaviors using
+:attr:`pdpyras.PDSession.retry`, but it is not recommended.
 
 Events API Usage
 ****************
@@ -633,3 +649,5 @@ in the commit message.
 
 .. |travis-build| image:: https://travis-ci.com/Deconstrained/pdpyras.svg?branch=master
     :target: https://travis-ci.com/Deconstrained/pdpyras
+.. |circleci-build| image:: https://circleci.com/gh/PagerDuty/pdpyras.svg?style=svg
+    :target: https://circleci.com/gh/PagerDuty/pdpyras
